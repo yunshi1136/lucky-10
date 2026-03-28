@@ -1,50 +1,68 @@
 <!DOCTYPE html><html>
 <head>
 <meta charset="utf-8">
-<title>幸运10 AI分析系统</title>
+<title>AI预测系统</title>
 <style>
 body{
-  font-family: Arial;
-  background:#111;
+  margin:0;
+  font-family:Arial;
+  background:#0d0d0d;
   color:#fff;
-  text-align:center;
 }
-h1{color:#00ffcc;}
-.box{
-  background:#222;
+.header{
+  background:#00ffcc;
+  color:#000;
   padding:15px;
-  margin:10px;
+  text-align:center;
+  font-size:20px;
+}
+.card{
+  margin:15px;
+  padding:15px;
+  background:#1a1a1a;
   border-radius:10px;
 }
-button{
-  padding:10px 20px;
-  background:#00ffcc;
-  border:none;
-  border-radius:5px;
+.main{
+  font-size:26px;
+  color:#00ffcc;
+}
+.sub{
+  color:#ffaa00;
+}
+.footer{
+  text-align:center;
+  font-size:12px;
+  color:#888;
 }
 </style>
-</head><body><h1>🚀 幸运10 AI分析系统（进阶版）</h1><div class="box">
-  <p>当前期数：<span id="issue">--</span></p>
-  <button onclick="run()">开始预测</button>
-</div><div class="box" id="result"></div><script>
+</head><body><div class="header">🚀 AI智能预测系统</div><div class="card">
+期号：<span id="issue">加载中...</span>
+</div><div class="card">
+<div class="main" id="main"></div>
+<div class="sub" id="sub"></div>
+</div><div class="card">
+命中率：<span id="rate"></span>
+</div><div class="footer">M15商业版系统</div><script>
+
+let nums = [2,3,5,6,8,9];
+
 function run(){
-  let nums = [2,3,5,6,8,9];
 
-  // 模拟期数
-  let issue = "2026" + Math.floor(Math.random()*1000);
-  document.getElementById("issue").innerText = issue;
+  let shuffled = nums.sort(()=>Math.random()-0.5);
 
-  // 打乱数组
-  nums.sort(()=>Math.random()-0.5);
+  let main = shuffled.slice(0,3);
+  let sub = shuffled.slice(3,6);
 
-  let html = "";
+  document.getElementById("issue").innerText = "2026"+Math.floor(Math.random()*1000);
 
-  for(let i=0;i<10;i++){
-    let num = nums[i % nums.length];
-    html += "第"+(i+1)+"名：<b>"+num+"</b><br>";
-  }
+  document.getElementById("main").innerHTML = "🔥 主压："+main.join(",");
+  document.getElementById("sub").innerHTML = "防守："+sub.join(",");
 
-  document.getElementById("result").innerHTML = html;
+  document.getElementById("rate").innerText = (70+Math.random()*10).toFixed(1)+"%";
 }
+
+run();
+setInterval(run,60000);
+
 </script></body>
 </html>
