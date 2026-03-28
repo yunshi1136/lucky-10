@@ -1,0 +1,50 @@
+<!DOCTYPE html><html>
+<head>
+<meta charset="utf-8">
+<title>幸运10 AI分析系统</title>
+<style>
+body{
+  font-family: Arial;
+  background:#111;
+  color:#fff;
+  text-align:center;
+}
+h1{color:#00ffcc;}
+.box{
+  background:#222;
+  padding:15px;
+  margin:10px;
+  border-radius:10px;
+}
+button{
+  padding:10px 20px;
+  background:#00ffcc;
+  border:none;
+  border-radius:5px;
+}
+</style>
+</head><body><h1>🚀 幸运10 AI分析系统（进阶版）</h1><div class="box">
+  <p>当前期数：<span id="issue">--</span></p>
+  <button onclick="run()">开始预测</button>
+</div><div class="box" id="result"></div><script>
+function run(){
+  let nums = [2,3,5,6,8,9];
+
+  // 模拟期数
+  let issue = "2026" + Math.floor(Math.random()*1000);
+  document.getElementById("issue").innerText = issue;
+
+  // 打乱数组
+  nums.sort(()=>Math.random()-0.5);
+
+  let html = "";
+
+  for(let i=0;i<10;i++){
+    let num = nums[i % nums.length];
+    html += "第"+(i+1)+"名：<b>"+num+"</b><br>";
+  }
+
+  document.getElementById("result").innerHTML = html;
+}
+</script></body>
+</html>
