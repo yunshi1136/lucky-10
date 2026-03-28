@@ -1,7 +1,7 @@
 <!DOCTYPE html><html>
 <head>
 <meta charset="utf-8">
-<title>AI预测系统</title>
+<title>AI预测系统Pro</title>
 <style>
 body{
   margin:0;
@@ -35,34 +35,131 @@ body{
   color:#888;
 }
 </style>
-</head><body><div class="header">🚀 AI智能预测系统</div><div class="card">
-期号：<span id="issue">加载中...</span>
+</head><body><div class="header">🚀 AI智能预测系统（终极版）</div><div class="card">
+<span id="issue">加载中...</span>
+</div><div class="card" id="result">
+分析中...
 </div><div class="card">
-<div class="main" id="main"></div>
-<div class="sub" id="sub"></div>
-</div><div class="card">
-命中率：<span id="rate"></span>
-</div><div class="footer">M15商业版系统</div><script>
+<span id="countdown">倒计时加载中...</span>
+</div><div class="footer">M15商业版 · 实时同步</div><script>
 
-let nums = [2,3,5,6,8,9];
+let API = "https://api.allorigins.win/raw?url=";
+let DATA_URL = "https://zygjb.com/api/Aus10/getLotteryList/30";
+let baseNums = [2,3,5,6,8,9];
 
-function run(){
+let nextTime = null;
+let interval = 300000;
 
-  let shuffled = nums.sort(()=>Math.random()-0.5);
+window.onload = ()=>{
+  run();
+  setInterval(updateCountdown,1000);
+};
 
-  let main = shuffled.slice(0,3);
-  let sub = shuffled.slice(3,6);
+// 🚀 主逻辑
+async function run(){
 
-  document.getElementById("issue").innerText = "2026"+Math.floor(Math.random()*1000);
+  try{
 
-  document.getElementById("main").innerHTML = "🔥 主压："+main.join(",");
-  document.getElementById("sub").innerHTML = "防守："+sub.join(",");
+    let res = await fetch(API + encodeURIComponent(DATA_URL));
+    let data = await res.json();
+    let list = data.data.list;
 
-  document.getElementById("rate").innerText = (70+Math.random()*10).toFixed(1)+"%";
+    let current = list[0];
+    let prev = list[1];
+
+    // 👉 期号
+    let issue = current.expect;
+
+    // 👉 真实时间间隔（自动同步）
+    let t1 = new Date(current.opentime).getTime();
+    let t2 = new Date(prev.opentime).getTime();
+
+    let realInterval = Math.abs(t1 - t2);
+
+    if(realInterval > 60000 && realInterval < 600000){
+      interval = realInterval;
+    }
+
+    // 👉 当前北京时间
+    let now = new Date();
+    let bj = new Date(now.getTime() + 8*60*60*1000);
+
+    // 👉 下一期开奖时间
+    nextTime = new Date(t1 + interval);
+
+    let month = (bj.getMonth()+1).toString().padStart(2,"0");
+    let day = bj.getDate().toString().padStart(2,"0");
+    let hour = bj.getHours().toString().padStart(2,"0");
+    let min = bj.getMinutes().toString().padStart(2,"0");
+
+    document.getElementById("issue").innerText =
+      month+"/"+day+" "+hour+":"+min+" 期号："+issue;
+
+    // ===== AI预测 =====
+    let score = {};
+    baseNums.forEach(n=>score[n]=0);
+
+    list.forEach((item,index)=>{
+      let num = parseInt(item.opencode.split(",")[0]);
+
+      if(score[num] !== undefined){
+        score[num] += 1;
+        if(index < 10) score[num] += 3;
+        if(index < 3) score[num] += 6;
+      }
+    });
+
+    for(let i=0;i<list.length-1;i++){
+      let n1 = parseInt(list[i].opencode.split(",")[0]);
+      let n2 = parseInt(list[i+1].opencode.split(",")[0]);
+
+      if(n1 === n2 && score[n1] !== undefined){
+        score[n1] += 5;
+      }
+    }
+
+    let sorted = Object.entries(score).sort((a,b)=>b[1]-a[1]);
+
+    let top6 = sorted.slice(0,6);
+    let top3 = sorted.slice(0,3);
+
+    let total = Object.values(score).reduce((a,b)=>a+b,0);
+    let rate = ((top6.reduce((s,i)=>s+i[1],0)/total)*100).toFixed(1);
+
+    let html = "";
+
+    html += "<div class='main'>🔥 主压："+top3.map(i=>i[0]).join(", ")+"</div><br>";
+    html += "<div class='sub'>防守："+top6.slice(3).map(i=>i[0]).join(", ")+"</div><br>";
+    html += "<hr>";
+    html += "🎯 命中率："+rate+"%";
+
+    document.getElementById("result").innerHTML = html;
+
+  }catch(e){
+    document.getElementById("result").innerHTML="❌ 数据获取失败";
+  }
 }
 
-run();
-setInterval(run,60000);
+// ⏱ 倒计时（同步版）
+function updateCountdown(){
+
+  if(!nextTime) return;
+
+  let now = new Date().getTime();
+  let diff = nextTime.getTime() - now;
+
+  if(diff <= 0){
+    document.getElementById("countdown").innerText = "开奖中...";
+    run();
+    return;
+  }
+
+  let m = Math.floor(diff/60000);
+  let s = Math.floor((diff%60000)/1000);
+
+  document.getElementById("countdown").innerText =
+    "⏱ 下期开奖："+m+"分"+s+"秒";
+}
 
 </script></body>
 </html>
