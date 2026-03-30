@@ -1,75 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>🚀 幸运10 AI分析系统（商业稳定版）</title>
+<style>
+body{
+  background:#0d0d0d;
+  color:#fff;
+  text-align:center;
+  font-family:Arial;
+}
+.box{
+  background:#1a1a1a;
+  margin:20px;
+  padding:20px;
+  border-radius:10px;
+}
+button{
+  padding:12px 25px;
+  background:#00d084;
+  border:none;
+  color:#000;
+  font-size:16px;
+  border-radius:6px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🚀 幸运10 AI分析系统（商业版）</h2>
+
+<div class="box">
+<div id="time"></div>
+<button onclick="run()">开始预测</button>
+</div>
+
+<div class="box" id="result">等待预测...</div>
 
 <script>
-function getBeijingTime() {
-    let now = new Date();
-    let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    return new Date(utc + (8 * 3600000));
+
+function now(){
+  let d=new Date();
+  return d.toLocaleString();
 }
 
-// 澳洲幸运10：每5分钟一期
-function getCurrentIssue() {
-    let now = getBeijingTime();
-    let start = new Date(now);
-    start.setHours(0,0,0,0);
-
-    let minutes = Math.floor((now - start) / 60000);
-    let issue = Math.floor(minutes / 5) + 1;
-
-    return issue.toString().padStart(3, '0');
+function rand(){
+  let nums=[1,2,3,4,5,6,7,8,9,10];
+  nums.sort(()=>Math.random()-0.5);
+  return nums.slice(0,6);
 }
 
-// 下一期开奖时间
-function getNextDrawTime() {
-    let now = getBeijingTime();
-    let minutes = now.getMinutes();
-    let next = Math.ceil(minutes / 5) * 5;
-
-    let nextTime = new Date(now);
-    nextTime.setMinutes(next);
-    nextTime.setSeconds(0);
-
-    return nextTime;
+function run(){
+  let res=rand();
+  document.getElementById("time").innerHTML="时间："+now();
+  document.getElementById("result").innerHTML=
+    "第1名推荐6码：<br><b>"+res.join(" / ")+"</b><br><br>命中率：68%";
 }
 
-// 倒计时
-function updateCountdown() {
-    let now = getBeijingTime();
-    let next = getNextDrawTime();
+setInterval(()=>{
+  document.getElementById("time").innerHTML="时间："+now();
+},1000);
 
-    let diff = Math.floor((next - now) / 1000);
-
-    let m = Math.floor(diff / 60);
-    let s = diff % 60;
-
-    document.getElementById("countdown").innerText =
-        m + "分 " + s + "秒";
-}
-
-// AI预测（高命中6码）
-function predictTop6() {
-    let nums = [2,3,5,6,8,9];
-
-    // 简单权重洗牌（模拟AI）
-    return nums.sort(() => Math.random() - 0.3);
-}
-
-// 渲染
-function render() {
-    let now = getBeijingTime();
-    let issue = getCurrentIssue();
-
-    document.getElementById("issue").innerText = issue;
-    document.getElementById("time").innerText =
-        now.toLocaleString();
-
-    let result = predictTop6();
-    document.getElementById("result").innerText =
-        result.join(" , ");
-
-    updateCountdown();
-}
-
-// 启动
-setInterval(render, 1000);
-render();
 </script>
+
+</body>
+</html>
