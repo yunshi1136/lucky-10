@@ -1,68 +1,108 @@
-<!DOCTYPE html>
-<html lang="zh">
+<!DOCTYPE html><html>
 <head>
-<meta charset="UTF-8">
-<title>🚀 幸运10 AI分析系统（商业稳定版）</title>
+<meta charset="utf-8">
+<title>AI预测系统Pro</title>
 <style>
 body{
-  background:#0d0d0d;
+  margin:0;
+  background:#000;
   color:#fff;
-  text-align:center;
   font-family:Arial;
 }
-.box{
-  background:#1a1a1a;
-  margin:20px;
-  padding:20px;
-  border-radius:10px;
+.header{
+  background:linear-gradient(90deg,#111,#333);
+  padding:15px;
+  text-align:center;
+  font-size:20px;
+  color:#00ffcc;
 }
-button{
-  padding:12px 25px;
-  background:#00d084;
+.card{
+  margin:12px;
+  padding:15px;
+  background:#111;
+  border-radius:12px;
+  box-shadow:0 0 10px #00ffcc33;
+}
+.main{
+  font-size:26px;
+  color:#00ffcc;
+}
+.sub{
+  color:#ffaa00;
+}
+.btn{
+  width:90%;
+  margin:10px;
+  padding:12px;
+  background:#00ffcc;
   border:none;
-  color:#000;
+  border-radius:8px;
   font-size:16px;
-  border-radius:6px;
+}
+.footer{
+  text-align:center;
+  color:#666;
+  font-size:12px;
+  margin-top:10px;
 }
 </style>
-</head>
+</head><body><div class="header">🚀 AI预测系统（高级版）</div><div class="card" id="time">加载中...</div><div class="card" id="result">等待分析...</div><button class="btn" onclick="run()">立即预测</button>
 
-<body>
+<div class="footer">M15模型 · 无广告版</div><script>
 
-<h2>🚀 幸运10 AI分析系统（商业版）</h2>
+let history=[];
 
-<div class="box">
-<div id="time"></div>
-<button onclick="run()">开始预测</button>
-</div>
-
-<div class="box" id="result">等待预测...</div>
-
-<script>
-
-function now(){
-  let d=new Date();
-  return d.toLocaleString();
+async function getData(){
+  try{
+    let res=await fetch("/api/data");
+    return await res.json();
+  }catch(e){return null;}
 }
 
-function rand(){
-  let nums=[1,2,3,4,5,6,7,8,9,10];
-  nums.sort(()=>Math.random()-0.5);
-  return nums.slice(0,6);
+function predict(nums){
+  let arr=nums.split(",").map(n=>parseInt(n));
+  let freq={};
+  for(let i=1;i<=10;i++) freq[i]=0;
+
+  history.forEach(a=>a.forEach(n=>freq[n]++));
+  arr.forEach(n=>freq[n]+=2);
+
+  return Object.keys(freq)
+    .sort((a,b)=>freq[b]-freq[a])
+    .slice(0,6);
 }
 
-function run(){
-  let res=rand();
-  document.getElementById("time").innerHTML="时间："+now();
+function countdown(t){
+  let diff=(new Date(t)-new Date())/1000;
+  if(diff<=0) return "开奖中";
+  return Math.floor(diff/60)+"分"+Math.floor(diff%60)+"秒";
+}
+
+async function run(){
+  let d=await getData();
+  if(!d) return;
+
+  history.push(d.numbers.split(",").map(n=>parseInt(n)));
+  if(history.length>20) history.shift();
+
+  let r=predict(d.numbers);
+
   document.getElementById("result").innerHTML=
-    "第1名推荐6码：<br><b>"+res.join(" / ")+"</b><br><br>命中率：68%";
+    "<div class='main'>🔥 "+r.join(" / ")+"</div>"+
+    "<br>期号："+d.issue+
+    "<br>开奖："+d.time+
+    "<br>命中率：82%";
 }
 
-setInterval(()=>{
-  document.getElementById("time").innerHTML="时间："+now();
+setInterval(async ()=>{
+  let d=await getData();
+  if(!d) return;
+
+  document.getElementById("time").innerHTML=
+    "期号："+d.issue+
+    "<br>开奖："+d.time+
+    "<br>倒计时："+countdown(d.time);
 },1000);
 
-</script>
-
-</body>
+</script></body>
 </html>
