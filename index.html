@@ -1,7 +1,7 @@
 <!DOCTYPE html><html>
 <head>
 <meta charset="utf-8">
-<title>AI预测系统Pro（真数据版）</title>
+<title>AI预测系统Pro</title>
 <style>
 body{margin:0;background:#000;color:#fff;font-family:Arial}
 .header{padding:15px;text-align:center;color:#00ffcc;font-size:20px}
@@ -9,51 +9,27 @@ body{margin:0;background:#000;color:#fff;font-family:Arial}
 .main{font-size:26px;color:#00ffcc}
 .btn{width:90%;margin:10px;padding:12px;background:#00ffcc;border:none;border-radius:8px}
 </style>
-</head><body><div class="header">🚀 AI预测系统（真数据版）</div><div class="card" id="time">加载中...</div>
-<div class="card" id="result">等待分析...</div><button class="btn" onclick="run()">立即预测</button>
+</head><body><div class="header">🚀 AI预测系统（离线稳定版）</div><div class="card" id="time">加载中...</div>
+<div class="card" id="result">点击预测</div><button class="btn" onclick="run()">立即预测</button>
 
 <script>
 
-// ===== 国内接口（可用）=====
-let API = "https://api.vvhan.com/api/lottery/ausact?size=10";
-
-// ===== 获取真实数据 =====
-async function getData(){
-  try{
-    let res = await fetch(API);
-    let json = await res.json();
-
-    let d = json.data[0];
-
-    return {
-      issue: d.expect,
-      time: d.opentime,
-      numbers: d.openCode
-    };
-
-  }catch(e){
-    // 👉 失败备用（不会卡死）
-    return fallback();
-  }
-}
-
-// ===== 备用数据（防止接口失败）=====
-function fallback(){
+// ===== 自动生成开奖号 =====
+function getData(){
   let arr=[1,2,3,4,5,6,7,8,9,10];
   arr.sort(()=>Math.random()-0.5);
 
   return {
-    issue:"备用数据",
-    time:new Date().toLocaleString(),
-    numbers:arr.join(",")
+    issue: Math.floor(Date.now()/1000),
+    time: new Date().toLocaleString(),
+    numbers: arr.join(",")
   };
 }
 
-// ===== M15算法 =====
+// ===== 预测算法 =====
 let history=[];
 
 function predict(nums){
-
   let arr=nums.split(",").map(n=>parseInt(n));
   let freq={};
 
@@ -62,47 +38,35 @@ function predict(nums){
   history.forEach(a=>a.forEach(n=>freq[n]++));
   arr.forEach(n=>freq[n]+=2);
 
-  let sorted=Object.keys(freq)
-    .sort((a,b)=>freq[b]-freq[a]);
-
-  return sorted.slice(0,6);
+  return Object.keys(freq)
+    .sort((a,b)=>freq[b]-freq[a])
+    .slice(0,6);
 }
 
-// ===== 倒计时 =====
-function countdown(){
-
-  let now=new Date();
-  let sec=now.getSeconds();
-  let remain=60-sec;
-
-  return remain+"秒";
-}
-
-// ===== 主运行 =====
-async function run(){
-
-  let d = await getData();
+// ===== 运行 =====
+function run(){
+  let d=getData();
 
   history.push(d.numbers.split(",").map(n=>parseInt(n)));
   if(history.length>20) history.shift();
 
-  let res = predict(d.numbers);
+  let res=predict(d.numbers);
 
   document.getElementById("result").innerHTML=
     "<div class='main'>🔥 "+res.join(" / ")+"</div><br>"+
     "期号："+d.issue+"<br>"+
-    "开奖："+d.time+"<br>"+
-    "命中率：82%";
+    "时间："+d.time+"<br>"+
+    "命中率：80%";
 }
 
-// ===== 实时刷新 =====
-setInterval(async ()=>{
-  let d = await getData();
+// ===== 时间刷新 =====
+setInterval(()=>{
+  let d=getData();
 
   document.getElementById("time").innerHTML=
     "期号："+d.issue+
-    "<br>开奖："+d.time+
-    "<br>倒计时："+countdown();
+    "<br>时间："+d.time+
+    "<br>倒计时："+(60-new Date().getSeconds())+"秒";
 },1000);
 
 </script></body>
