@@ -1,73 +1,37 @@
 <!DOCTYPE html><html>
 <head>
-<meta charset="utf-8">
-<title>AI预测系统Pro</title>
+<meta charset="UTF-8">
+<title>幸运10实时+预测</title>
 <style>
-body{margin:0;background:#000;color:#fff;font-family:Arial}
-.header{padding:15px;text-align:center;color:#00ffcc;font-size:20px}
-.card{margin:12px;padding:15px;background:#111;border-radius:10px}
-.main{font-size:26px;color:#00ffcc}
-.btn{width:90%;margin:10px;padding:12px;background:#00ffcc;border:none;border-radius:8px}
+body{font-family:Arial;text-align:center;background:#111;color:#fff}
+h1{color:#0f0}
+button{padding:10px 20px;margin:10px;font-size:18px}
+.box{margin-top:20px;font-size:22px}
 </style>
-</head><body><div class="header">🚀 AI预测系统（离线稳定版）</div><div class="card" id="time">加载中...</div>
-<div class="card" id="result">点击预测</div><button class="btn" onclick="run()">立即预测</button>
+</head>
+<body><h1>澳洲幸运10</h1><div class="box" id="result">正在加载开奖数据...</div><button onclick="predict()">一键预测</button>
 
-<script>
-
-// ===== 自动生成开奖号 =====
+<div class="box" id="predict"></div><script>
 function getData(){
-  let arr=[1,2,3,4,5,6,7,8,9,10];
-  arr.sort(()=>Math.random()-0.5);
-
-  return {
-    issue: Math.floor(Date.now()/1000),
-    time: new Date().toLocaleString(),
-    numbers: arr.join(",")
-  };
+fetch("https://api.vvhan.com/api/caipiao?code=xyft")
+.then(res=>res.json())
+.then(data=>{
+document.getElementById("result").innerHTML =
+"最新期号："+data.data.expect+"<br>开奖号码："+data.data.opencode;
+})
+.catch(()=>{
+document.getElementById("result").innerHTML="获取失败（可能网络限制）";
+});
 }
 
-// ===== 预测算法 =====
-let history=[];
-
-function predict(nums){
-  let arr=nums.split(",").map(n=>parseInt(n));
-  let freq={};
-
-  for(let i=1;i<=10;i++) freq[i]=0;
-
-  history.forEach(a=>a.forEach(n=>freq[n]++));
-  arr.forEach(n=>freq[n]+=2);
-
-  return Object.keys(freq)
-    .sort((a,b)=>freq[b]-freq[a])
-    .slice(0,6);
+function predict(){
+let nums=[1,2,3,4,5,6,7,8,9,10];
+nums.sort(()=>Math.random()-0.5);
+document.getElementById("predict").innerHTML =
+"预测前五："+nums.slice(0,5).join(" , ");
 }
 
-// ===== 运行 =====
-function run(){
-  let d=getData();
-
-  history.push(d.numbers.split(",").map(n=>parseInt(n)));
-  if(history.length>20) history.shift();
-
-  let res=predict(d.numbers);
-
-  document.getElementById("result").innerHTML=
-    "<div class='main'>🔥 "+res.join(" / ")+"</div><br>"+
-    "期号："+d.issue+"<br>"+
-    "时间："+d.time+"<br>"+
-    "命中率：80%";
-}
-
-// ===== 时间刷新 =====
-setInterval(()=>{
-  let d=getData();
-
-  document.getElementById("time").innerHTML=
-    "期号："+d.issue+
-    "<br>时间："+d.time+
-    "<br>倒计时："+(60-new Date().getSeconds())+"秒";
-},1000);
-
+setInterval(getData,5000);
+getData();
 </script></body>
 </html>
