@@ -1,7 +1,7 @@
 <!DOCTYPE html><html>
 <head>
 <meta charset="UTF-8">
-<title>幸运10实时+预测</title>
+<title>冠军预测版</title>
 <style>
 body{font-family:Arial;text-align:center;background:#111;color:#fff}
 h1{color:#0f0}
@@ -9,26 +9,53 @@ button{padding:10px 20px;margin:10px;font-size:18px}
 .box{margin-top:20px;font-size:22px}
 </style>
 </head>
-<body><h1>澳洲幸运10</h1><div class="box" id="result">正在加载开奖数据...</div><button onclick="predict()">一键预测</button>
+<body><h1>澳洲幸运10（冠军预测）</h1><div class="box" id="result">加载中...</div><button onclick="predict()">预测冠军（6个）</button>
 
 <div class="box" id="predict"></div><script>
+let history = [];
+
 function getData(){
-fetch("https://api.vvhan.com/api/caipiao?code=xyft")
+fetch("https://api.api68.com/pks/getLotteryPksHistoryList.do?lotCode=10001")
 .then(res=>res.json())
 .then(data=>{
+let list = data.result.data;
+
+let latest = list[0];
 document.getElementById("result").innerHTML =
-"最新期号："+data.data.expect+"<br>开奖号码："+data.data.opencode;
+"期号："+latest.preDrawIssue+"<br>开奖号码："+latest.preDrawCode;
+
+// 收集最近20期冠军（第一个数）
+history = list.slice(0,20).map(item=>{
+return parseInt(item.preDrawCode.split(",")[0]);
+});
 })
 .catch(()=>{
-document.getElementById("result").innerHTML="获取失败（可能网络限制）";
+document.getElementById("result").innerHTML="获取失败";
 });
 }
 
 function predict(){
-let nums=[1,2,3,4,5,6,7,8,9,10];
-nums.sort(()=>Math.random()-0.5);
+if(history.length==0){
+document.getElementById("predict").innerHTML="数据未加载";
+return;
+}
+
+// 统计频率
+let count = {};
+for(let i=1;i<=10;i++){count[i]=0;}
+
+history.forEach(n=>{
+count[n]++;
+});
+
+// 排序（从高到低）
+let sorted = Object.keys(count).sort((a,b)=>count[b]-count[a]);
+
+// 取前6个
+let top6 = sorted.slice(0,6);
+
 document.getElementById("predict").innerHTML =
-"预测前五："+nums.slice(0,5).join(" , ");
+"冠军预测（6个）："+top6.join(" , ");
 }
 
 setInterval(getData,5000);
