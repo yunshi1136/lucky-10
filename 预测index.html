@@ -2,154 +2,123 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>冠军预测系统 V40（官方增强版）</title><style>
+<title>冠军预测系统 V50（最终稳定版）</title><style>
 body {
     font-family: Arial;
     background: #0f172a;
     color: #fff;
     text-align: center;
-    padding: 10px;
 }
-h1 { color: #38bdf8; }
 .box {
     background: #1e293b;
+    margin: 10px;
     padding: 15px;
-    margin: 10px auto;
     border-radius: 10px;
-    width: 95%;
-    max-width: 500px;
 }
 button {
-    padding: 10px 20px;
+    padding: 10px;
     margin: 5px;
-    border: none;
-    border-radius: 8px;
     background: #38bdf8;
-    color: #000;
-    font-size: 16px;
+    border: none;
+    border-radius: 6px;
 }
 .result {
     font-size: 22px;
-    margin-top: 10px;
     color: #facc15;
 }
-</style></head><body><h1>🏆 冠军预测系统 V40（实时增强）</h1><div class="box">
-    <h3>📊 最新开奖（自动校验）</h3>
+</style></head><body><h2>🏆 冠军预测系统 V50</h2><div class="box">
+    <h3>📊 最新开奖</h3>
     <div id="latest">加载中...</div>
 </div><div class="box">
-    <h3>🤖 冠军预测（6个）</h3>
+    <h3>🤖 冠军预测</h3>
     <button onclick="predict()">开始预测</button>
     <div class="result" id="result">--</div>
 </div><script>
 
-// 三数据源（稳定优先级）
 const APIs = [
-    "https://api.api68.com/pks/getPksHistoryList.do?lotCode=10001",
-    "https://api1688.com/pks/getPksHistoryList.do?lotCode=10001",
-    "https://www.mxnzp.com/api/lottery/ai/api?code=pk10"
+ "https://api.api68.com/pks/getPksHistoryList.do?lotCode=10001",
+ "https://api1688.com/pks/getPksHistoryList.do?lotCode=10001",
+ "https://www.mxnzp.com/api/lottery/ai/api?code=pk10"
 ];
 
-// 解析函数（适配不同接口）
-function parseData(data) {
-    try {
-        // api68 / 1688
-        if(data.result){
-            let item = data.result.data[0];
-            return {
-                issue: item.preDrawIssue,
-                nums: item.preDrawCode.split(",").map(Number)
-            };
-        }
-
-        // mxnzp接口
-        if(data.data){
-            let item = data.data[0];
-            return {
-                issue: item.expect,
-                nums: item.opencode.split(",").map(Number)
-            };
-        }
-
-    } catch(e){}
-    return null;
+// 统一解析
+function parse(d){
+ try{
+  if(d.result){
+   let i = d.result.data[0];
+   return {
+    issue: parseInt(i.preDrawIssue),
+    time: i.preDrawTime || "",
+    nums: i.preDrawCode.split(",").map(Number)
+   };
+  }
+  if(d.data){
+   let i = d.data[0];
+   return {
+    issue: parseInt(i.expect),
+    time: i.opentime || "",
+    nums: i.opencode.split(",").map(Number)
+   };
+  }
+ }catch(e){}
+ return null;
 }
 
-// 主加载（多接口校验）
+// 获取最真实数据（取期号最大）
 async function loadData(){
 
-    let results = [];
+ let list = [];
 
-    for(let api of APIs){
-        try{
-            let res = await fetch(api);
-            let data = await res.json();
+ for(let api of APIs){
+  try{
+   let r = await fetch(api);
+   let d = await r.json();
+   let p = parse(d);
+   if(p) list.push(p);
+  }catch(e){}
+ }
 
-            let parsed = parseData(data);
+ if(list.length === 0){
+  let fake = [5,3,8,1,6,9,2,7,10,4];
+  document.getElementById("latest").innerText =
+   "接口异常（离线）\n" + fake.join(" ");
+  return fake;
+ }
 
-            if(parsed){
-                results.push(parsed);
-            }
+ // 🔥 关键：取最大期号（最接近真实最新）
+ list.sort((a,b)=> b.issue - a.issue);
+ let best = list[0];
 
-        }catch(e){}
-    }
+ document.getElementById("latest").innerText =
+  "第 " + best.issue + " 期\n" +
+  (best.time ? best.time + "\n" : "") +
+  best.nums.join(" ");
 
-    // 校验（取最多一致结果）
-    if(results.length > 0){
-
-        let best = results[0];
-
-        document.getElementById("latest").innerText =
-            "第 " + best.issue + " 期\n" + best.nums.join(" ");
-
-        return best.nums;
-    }
-
-    // 全失败
-    let fallback = [5,3,8,1,6,9,2,7,10,4];
-    document.getElementById("latest").innerText =
-        "数据异常（离线）\n" + fallback.join(" ");
-    return fallback;
+ return best.nums;
 }
 
-// 预测算法（增强版）
+// 预测
 function predictAlgo(arr){
+ let pool = [1,2,3,4,5,6,7,8,9,10];
+ let weight = {};
+ pool.forEach(n=>weight[n]=1);
 
-    let pool = [1,2,3,4,5,6,7,8,9,10];
-    let weight = {};
+ arr.slice(0,5).forEach(n=>weight[n]+=4);
+ arr.slice(5).forEach(n=>weight[n]+=1.5);
 
-    pool.forEach(n => weight[n]=1);
-
-    // 前5强化
-    arr.slice(0,5).forEach(n=>{
-        weight[n] += 4;
-    });
-
-    // 中段平衡
-    arr.slice(5,8).forEach(n=>{
-        weight[n] += 2;
-    });
-
-    // 尾部冷号补偿
-    arr.slice(8).forEach(n=>{
-        weight[n] += 1.5;
-    });
-
-    let sorted = pool.sort((a,b)=>{
-        return (weight[b] + Math.random()) - (weight[a] + Math.random());
-    });
-
-    return sorted.slice(0,6);
+ return pool.sort((a,b)=>
+  (weight[b]+Math.random())-(weight[a]+Math.random())
+ ).slice(0,6);
 }
 
-// 预测按钮
 async function predict(){
-    let data = await loadData();
-    let res = predictAlgo(data);
-    document.getElementById("result").innerText = res.join("  ");
+ let d = await loadData();
+ let r = predictAlgo(d);
+ document.getElementById("result").innerText = r.join(" ");
 }
 
-// 自动刷新（30秒）
-setInterval(loadData, 30000);
+// 自动刷新
+setInterval(loadData, 20000);
 
 loadData();
 
